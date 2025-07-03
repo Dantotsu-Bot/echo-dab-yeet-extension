@@ -38,12 +38,6 @@ jobs:
         run: |
           ./gradlew assembleDebug
 
-      - name: Rename Signed APK
-        run: |
-          cd app/build/outputs/apk/debug
-          ls
-          mv app-debug.apk ${{ env.APP_PATH }}
-
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
@@ -56,7 +50,7 @@ jobs:
           tag_name: ${{ env.VERSION }}
           body_path: commit.txt
           name: ${{ env.VERSION }}
-          files: ${{ env.APP_PATH }}
+          files: "app/build/outputs/apk/debug/app-debug.apk"
 
       - name: Delete Old Releases
         uses: sgpublic/delete-release-action@master
