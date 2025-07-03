@@ -4,7 +4,7 @@ import dev.brahmkshatriya.echo.common.clients.ExtensionClient
 import dev.brahmkshatriya.echo.common.settings.Setting
 import dev.brahmkshatriya.echo.common.settings.Settings
 
-class TestExtension : ExtensionClient {
+class DabYeetExtension : ExtensionClient {
     override suspend fun onExtensionSelected() {}
 
     override val settingItems: List<Setting> = emptyList()
