@@ -20,7 +20,7 @@ jobs:
           cache: 'gradle'
 
       - name: Cook Variables from gradle.properties
-        run : |
+        run: |
           name=$(grep '^extName=' gradle.properties | cut -d'=' -f2)
           echo "NAME=$name Extension" >> $GITHUB_ENV
           id=$(grep '^extId=' gradle.properties | cut -d'=' -f2)
@@ -28,34 +28,33 @@ jobs:
 
       - name: Make Environment
         run: |
-          version=$( echo ${{ github.event.head_commit.id }} | cut -c1-7 )
+          version=$(echo "${{ github.event.head_commit.id }}" | cut -c1-7)
           echo "VERSION=v$version" >> $GITHUB_ENV
           echo -e "## ${{ env.NAME }}\n${{ github.event.head_commit.message }}" > commit.txt
           echo "APP_PATH=app/build/${{ env.TAG }}-$version.eapk" >> $GITHUB_ENV
-          echo "${{ secrets.KEYSTORE_B64 }}" | base64 -d > $GITHUB_WORKSPACE/signing-key.jks
+          echo "${{ secrets.KEYSTORE_B64 }}" | base64 -d > "$GITHUB_WORKSPACE/signing-key.jks"
           chmod +x ./gradlew
 
       - name: Build with Gradle
         run: |
           ./gradlew assembleDebug
-          cp app/build/outputs/apk/debug/app-debug.apk ${{ env.APP_PATH }}
+          cp app/build/outputs/apk/debug/app-debug.apk "${{ env.APP_PATH }}"
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           path: ${{ env.APP_PATH }}
 
-    - name: Upload APK to Telegram
-      shell: bash
-      env:
-        BOT_ID: ${{ secrets.TELEGRAM_BOT_ID }}
-        CHANNEL_ID: ${{ secrets.TELEGRAM_CHANNEL_ID }}
-      run: |
-        curl -s -X POST "https://api.telegram.org/bot${BOT_ID}/sendDocument" \
-          -F chat_id="${CHANNEL_ID}" \
-          -F document="@${{ env.APP_PATH }} \
-          -F caption="Dab yeet extension - ${{ env.VERSION }}"
-
+      - name: Upload APK to Telegram
+        shell: bash
+        env:
+          BOT_ID: ${{ secrets.TELEGRAM_BOT_ID }}
+          CHANNEL_ID: ${{ secrets.TELEGRAM_CHANNEL_ID }}
+        run: |
+          curl -s -X POST "https://api.telegram.org/bot${BOT_ID}/sendDocument" \
+            -F chat_id="${CHANNEL_ID}" \
+            -F document=@"${{ env.APP_PATH }}" \
+            -F caption="Dab yeet extension - ${{ env.VERSION }}"
 
       - name: Delete Old Releases
         uses: sgpublic/delete-release-action@master
