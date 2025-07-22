@@ -14,7 +14,7 @@ class DabYeetExtension : ExtensionClient, SearchFeedClient {
 
     override suspend fun onExtensionSelected() {}
 
-    override val settingItems: List<Setting> = emptyList()
+    override val settingItems: List<Setting> = listOf()
 
     private lateinit var setting: Settings
     override fun setSettings(settings: Settings) {
@@ -32,7 +32,7 @@ class DabYeetExtension : ExtensionClient, SearchFeedClient {
     override fun searchFeed(query: String, tab: Tab?): Feed {
         val dummyShelf = Shelf.Lists.Items(
             title = "Results for \"$query\"",
-            list = emptyList()
+            list = listOf()
         )
 
         val paged = PagedData.Single<Shelf> { listOf(dummyShelf) }
