@@ -30,6 +30,10 @@ class DabYeetExtension : ExtensionClient, SearchFeedClient {
     override suspend fun searchTabs(query: String): List<Tab> = listOf()
 
     override fun searchFeed(query: String, tab: Tab?): Feed {
+        if (query.isBlank()) {
+            return Feed(pagedData = PagedData.empty<Shelf>() )
+        }
+
         val dummyItemsShelf = Shelf.Lists.Items(
             title = "Albums for \"$query\"",
             list = listOf(),
