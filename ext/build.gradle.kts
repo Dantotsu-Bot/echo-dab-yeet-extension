@@ -27,13 +27,12 @@ dependencies {
 
     implementation("com.squareup.retrofit2:retrofit") {
         exclude(group = "com.squareup.okhttp3")
-        exclude(group = "org.jetbrains.kotlin", module = "kotlin-stdlib")
+        exclude(group = "org.jetbrains.kotlin")
     }
 
     implementation("com.squareup.retrofit2:converter-kotlinx-serialization") {
-        exclude(group = "org.jetbrains.kotlinx", module = "kotlinx-serialization-json")
-        exclude(group = "org.jetbrains.kotlin", module = "kotlin-stdlib-jdk8")
-        exclude(group = "org.jetbrains.kotlin", module = "kotlin-stdlib")
+        exclude(group = "org.jetbrains.kotlinx")
+        exclude(group = "org.jetbrains.kotlin")
     }
 
     testImplementation("junit:junit:4.13.2")
