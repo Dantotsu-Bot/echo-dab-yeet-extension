@@ -1,4 +1,4 @@
-package dev.brahmkshatriya.echo.extension
+package dev.brahmkshatriya.echo.extension.network
 
 import kotlinx.serialization.json.Json
 import okhttp3.OkHttpClient
