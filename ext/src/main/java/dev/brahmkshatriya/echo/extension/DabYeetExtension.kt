@@ -41,7 +41,7 @@ class DabYeetExtension : ExtensionClient, SearchFeedClient {
             subtitle = "Top Results",
             list = listOf(),
             isNumbered = true,
-            tyre = Shelf.Lists.Type.Linear
+            type = Shelf.Lists.Type.Linear
         )
 
         val allShelves = listOf(
