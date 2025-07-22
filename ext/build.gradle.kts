@@ -23,6 +23,10 @@ dependencies {
     compileOnly("com.github.brahmkshatriya:echo:$libVersion")
     compileOnly("org.jetbrains.kotlin:kotlin-stdlib:2.1.0")
 
+    implementation(platform("com.squareup.retrofit2:retrofit-bom:3.0.0"))
+    implementation("com.squareup.retrofit2:retrofit")
+    implementation("com.squareup.retrofit2:converter-kotlinx-serialization")
+
     testImplementation("junit:junit:4.13.2")
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.10.1")
     testImplementation("com.github.brahmkshatriya:echo:$libVersion")
