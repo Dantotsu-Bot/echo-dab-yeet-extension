@@ -10,10 +10,6 @@ import dev.brahmkshatriya.echo.common.models.Tab
 import dev.brahmkshatriya.echo.common.settings.Setting
 import dev.brahmkshatriya.echo.common.settings.Settings
 
-
-import dev.brahmkshatriya.echo.common.models.EchoMediaItem
-
-
 class DabYeetExtension : ExtensionClient, SearchFeedClient {
 
     override suspend fun onExtensionSelected() {}
@@ -36,9 +32,10 @@ class DabYeetExtension : ExtensionClient, SearchFeedClient {
     override fun searchFeed(query: String, tab: Tab?): Feed {
         val dummyShelf = Shelf.Lists.Items(
             title = "Results for \"$query\"",
-            list = listOf(EchoMediaItem(id = "1", title = "Dummy Result"))
+            list = emptyList()
         )
-        val paged = PagedData.Single { listOf(dummyShelf) }
+
+        val paged = PagedData.Single<Shelf> { listOf(dummyShelf) }
         return Feed(pagedData = paged)
     }
 
