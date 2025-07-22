@@ -10,6 +10,10 @@ import dev.brahmkshatriya.echo.common.models.Tab
 import dev.brahmkshatriya.echo.common.settings.Setting
 import dev.brahmkshatriya.echo.common.settings.Settings
 
+
+import dev.brahmkshatriya.echo.common.models.EchoMediaItem
+
+
 class DabYeetExtension : ExtensionClient, SearchFeedClient {
 
     override suspend fun onExtensionSelected() {}
@@ -25,12 +29,17 @@ class DabYeetExtension : ExtensionClient, SearchFeedClient {
 
     override suspend fun quickSearch(query: String): List<QuickSearchItem> = listOf()
 
+    override suspend fun deleteQuickSearch(item: QuickSearchItem) = Unit
+
     override suspend fun searchTabs(query: String): List<Tab> = listOf()
 
     override fun searchFeed(query: String, tab: Tab?): Feed {
-        TODO()
-        if (query.isNotBlank()) {
-            
-        }
+        val dummyShelf = Shelf.Lists.Items(
+            title = "Results for \"$query\"",
+            list = listOf(EchoMediaItem(id = "1", title = "Dummy Result"))
+        )
+        val paged = PagedData.Single { listOf(dummyShelf) }
+        return Feed(pagedData = paged)
     }
+
 }
