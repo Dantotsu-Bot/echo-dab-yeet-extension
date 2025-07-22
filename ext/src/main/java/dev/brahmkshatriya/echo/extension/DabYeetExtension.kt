@@ -25,13 +25,14 @@ class DabYeetExtension : ExtensionClient, SearchFeedClient {
 
     override suspend fun quickSearch(query: String): List<QuickSearchItem> = listOf()
 
-    override suspend fun deleteQuickSearch(item: QuickSearchItem)
+    override suspend fun deleteQuickSearch(item: QuickSearchItem): {}
 
     override suspend fun searchTabs(query: String): List<Tab> = listOf()
 
     override fun searchFeed(query: String, tab: Tab?): Feed {
+        TODO()
         if (query.isNotBlank()) {
-            TODO()
+            
         }
     }
 }
