@@ -1,4 +1,4 @@
-package dev.brahmkshatriya.echo.extension.model
+package dev.brahmkshatriya.echo.extension.models
 
 import kotlinx.serialization.Serializable
 

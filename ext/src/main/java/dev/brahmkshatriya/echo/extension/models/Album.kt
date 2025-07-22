@@ -1,4 +1,4 @@
-package dev.brahmkshatriya.echo.extension.model
+package dev.brahmkshatriya.echo.extension.models
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -12,7 +12,6 @@ data class Album(
     val releaseDate: String,
     val genre: String,
     val genreId: Int? = null,
-    val genreColor: String? = null,
     val cover: String,
     val images: Images? = null,
     val trackCount: Int,
@@ -24,6 +23,12 @@ data class Album(
     val mediaCount: Int? = null,
     @SerialName("parental_warning")
     val parentalWarning: Boolean? = null
+)
+
+
+@Serializable
+data class AlbumResponse(
+    val album: Album
 )
 
 @Serializable

@@ -1,14 +1,27 @@
 package dev.brahmkshatriya.echo.extension.network
 
-import dev.brahmkshatriya.echo.extension.model.Album
+import dev.brahmkshatriya.echo.extension.models.AlbumResponse
+import dev.brahmkshatriya.echo.extension.models.ArtistResponse
+import dev.brahmkshatriya.echo.extension.models.SearchResponse
 import retrofit2.http.GET
-import retrofit2.http.Path
+import retrofit2.http.Query
 
 interface ApiService {
 
-    @GET("albums/{id}")
-    suspend fun getAlbum(@Path("id") id: String): Album
+    @GET("album")
+    suspend fun getAlbum(
+        @Query("albumId") id: String
+    ): AlbumResponse
 
-    @GET("artists/{id}")
-    suspend fun getArtist(@Path("id") id: String): Artist
+    @GET("discography")
+    suspend fun getArtist(
+        @Query("artistId") id: String
+    ): ArtistResponse
+
+    @GET("search")
+    suspend fun search(
+        @Query("q") query: String,
+        @Query("offset") offset: Int = 0,
+        @Query("type") type: String,
+    ): SearchResponse
 }
