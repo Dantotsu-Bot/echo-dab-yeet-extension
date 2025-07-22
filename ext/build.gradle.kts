@@ -24,13 +24,23 @@ dependencies {
     compileOnly("org.jetbrains.kotlin:kotlin-stdlib:2.1.0")
 
     implementation(platform("com.squareup.retrofit2:retrofit-bom:3.0.0"))
-    implementation("com.squareup.retrofit2:retrofit")
-    implementation("com.squareup.retrofit2:converter-kotlinx-serialization")
+
+    implementation("com.squareup.retrofit2:retrofit") {
+        exclude(group = "com.squareup.okhttp3")
+        exclude(group = "org.jetbrains.kotlin", module = "kotlin-stdlib")
+    }
+
+    implementation("com.squareup.retrofit2:converter-kotlinx-serialization") {
+        exclude(group = "org.jetbrains.kotlinx", module = "kotlinx-serialization-json")
+        exclude(group = "org.jetbrains.kotlin", module = "kotlin-stdlib-jdk8")
+        exclude(group = "org.jetbrains.kotlin", module = "kotlin-stdlib")
+    }
 
     testImplementation("junit:junit:4.13.2")
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.10.1")
     testImplementation("com.github.brahmkshatriya:echo:$libVersion")
 }
+
 
 // Extension properties goto `gradle.properties` to set values
 
