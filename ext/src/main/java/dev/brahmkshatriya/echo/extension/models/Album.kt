@@ -38,7 +38,7 @@ data class Album(
             tracks = trackCount,
             duration = duration?.toLong(),
             releaseDate = parseDate(releaseDate),
-            label = label?.name,
+            label = label,
             isExplicit = parentalWarning
         )
     }
