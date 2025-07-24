@@ -33,6 +33,7 @@ dependencies {
     implementation("com.squareup.retrofit2:converter-kotlinx-serialization") {
         exclude(group = "org.jetbrains.kotlin")
     }
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.9.22")
 
     testImplementation("junit:junit:4.13.2")
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.10.1")
