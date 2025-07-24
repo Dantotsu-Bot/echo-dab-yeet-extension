@@ -5,14 +5,17 @@ import dev.brahmkshatriya.echo.common.models.Artist
 import dev.brahmkshatriya.echo.common.models.ImageHolder.Companion.toImageHolder
 import dev.brahmkshatriya.echo.common.models.ImageHolder
 import dev.brahmkshatriya.echo.common.models.Date
+import dev.brahmkshatriya.echo.extension.utils.IntToString
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
 data class Album(
+    @Serializable(with = IntToString::class)
     val id: String,
     val title: String,
     val artist: String,
+    @Serializable(with = IntToString::class)
     val artistId: String? = null,
     val releaseDate: String,
     val genre: String,
