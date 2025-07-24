@@ -40,7 +40,7 @@ class DabYeetExtension : ExtensionClient, SearchFeedClient {
 
         val dummyItemsShelf = Shelf.Lists.Items(
             title = "Albums for \"$query\"",
-            list = getAlbums,
+            list = getAlbums(),
             type = Shelf.Lists.Type.Grid
         )
 
@@ -67,10 +67,10 @@ class DabYeetExtension : ExtensionClient, SearchFeedClient {
 
     private fun getAlbums(query: String, limit: Pair<Int, Int> = 0 to 0): List<EchoMediaItem.Lists.Album> {
         val (trackLimit, albumLimit) = limit
-        
+
         val albumResponse =  api.search(query, albumLimit, MediaType.Album.type)
-        
-        return val shelves = albumResponse.albums.map { it.toAlbum().toMediaItem() }
+
+        return albumResponse.albums.map { it.toAlbum().toMediaItem() }
     }
 
 
