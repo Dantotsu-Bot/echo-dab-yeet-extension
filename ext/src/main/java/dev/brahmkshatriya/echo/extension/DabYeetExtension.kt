@@ -13,7 +13,6 @@ import dev.brahmkshatriya.echo.common.models.EchoMediaItem
 import dev.brahmkshatriya.echo.common.settings.Setting
 import dev.brahmkshatriya.echo.common.settings.Settings
 import dev.brahmkshatriya.echo.extension.network.ApiService
-import dev.brahmkshatriya.echo.extension.network.HttpClient
 import okhttp3.OkHttpClient
 
 class DabYeetExtension : ExtensionClient, SearchFeedClient {
@@ -21,8 +20,7 @@ class DabYeetExtension : ExtensionClient, SearchFeedClient {
 
     private val client by lazy { OkHttpClient.Builder().build() }
 
-    private val httpClient = HttpClient(client)
-    private val api = ApiService(httpClient)
+    private val api = ApiService(client)
 
     // ===== Settings ===== //
 

@@ -4,42 +4,29 @@ import dev.brahmkshatriya.echo.extension.models.AlbumResponse
 import dev.brahmkshatriya.echo.extension.models.ArtistResponse
 import dev.brahmkshatriya.echo.extension.models.Stream
 import dev.brahmkshatriya.echo.extension.models.SearchResponse
+import okhttp3.OkHttpClient
 
-class ApiService(private val httpClient: HttpClient) {
+class ApiService(client: OkHttpClient) : BaseHttpClient(client) {
+
+    override val baseUrl: String = "https://dab.yeet.su/api/"
 
     suspend fun getAlbum(id: String): AlbumResponse {
-        return httpClient.get(
-            endpoint = "album",
-            queryParams = mapOf("albumId" to id)
-        )
+        return get("album", mapOf("albumId" to id))
     }
 
     suspend fun getArtist(id: String): ArtistResponse {
-        return httpClient.get(
-            endpoint = "discography",
-            queryParams = mapOf("artistId" to id)
-        )
+        return get("discography", mapOf("artistId" to id))
     }
 
     suspend fun search(
         query: String,
         offset: Int = 0,
-        type: String
+        type: String,
     ): SearchResponse {
-        return httpClient.get(
-            endpoint = "search",
-            queryParams = mapOf(
-                "q" to query,
-                "offset" to offset.toString(),
-                "type" to type
-            )
-        )
+        return get("search", mapOf("q" to query, "offset" to offset, "type" to type))
     }
 
     suspend fun getStream(trackId: String): Stream {
-        return httpClient.get(
-            endpoint = "stream",
-            queryParams = mapOf("trackId" to trackId)
-        )
+        return get("stream", mapOf("trackId" to trackId))
     }
 }
