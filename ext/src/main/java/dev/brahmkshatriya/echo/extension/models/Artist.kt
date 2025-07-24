@@ -10,7 +10,7 @@ data class ArtistResponse(
 
 @Serializable
 data class Artist(
-    val id: Long,
+    val id: String,
     val name: String,
     val albumsCount: Int,
     val albumsAsPrimaryArtistCount: Int,
@@ -18,7 +18,7 @@ data class Artist(
     val slug: String,
     val image: Images,
     val biography: Biography? = null,
-    val similarArtistIds: List<Long>,
+    val similarArtistIds: List<String>,
     val information: String? = null
 )
 

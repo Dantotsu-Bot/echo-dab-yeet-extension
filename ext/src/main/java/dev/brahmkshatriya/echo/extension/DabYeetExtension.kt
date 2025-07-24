@@ -1,5 +1,6 @@
 package dev.brahmkshatriya.echo.extension
 
+
 import dev.brahmkshatriya.echo.common.clients.ExtensionClient
 import dev.brahmkshatriya.echo.common.clients.SearchFeedClient
 import dev.brahmkshatriya.echo.common.helpers.PagedData
@@ -7,8 +8,11 @@ import dev.brahmkshatriya.echo.common.models.Feed
 import dev.brahmkshatriya.echo.common.models.QuickSearchItem
 import dev.brahmkshatriya.echo.common.models.Shelf
 import dev.brahmkshatriya.echo.common.models.Tab
+import dev.brahmkshatriya.echo.common.models.EchoMediaItem.Companion.toMediaItem
+import dev.brahmkshatriya.echo.common.models.EchoMediaItem
 import dev.brahmkshatriya.echo.common.settings.Setting
 import dev.brahmkshatriya.echo.common.settings.Settings
+import dev.brahmkshatriya.echo.extension.network.RetrofitClient
 
 class DabYeetExtension : ExtensionClient, SearchFeedClient {
 
@@ -36,7 +40,7 @@ class DabYeetExtension : ExtensionClient, SearchFeedClient {
 
         val dummyItemsShelf = Shelf.Lists.Items(
             title = "Albums for \"$query\"",
-            list = listOf(),
+            list = getAlbums,
             type = Shelf.Lists.Type.Grid
         )
 
@@ -55,6 +59,25 @@ class DabYeetExtension : ExtensionClient, SearchFeedClient {
 
         val paged = PagedData.Single<Shelf> { allShelves }
         return Feed(pagedData = paged)
+    }
+
+    // ====== API functions ======= //
+
+    private val api = RetrofitClient.api
+
+    private fun getAlbums(query: String, limit: Pair<Int, Int> = 0 to 0): List<EchoMediaItem.Lists.Album> {
+        val (trackLimit, albumLimit) = limit
+        
+        val albumResponse =  api.search(query, albumLimit, MediaType.Album.type)
+        
+        return val shelves = albumResponse.albums.map { it.toAlbum().toMediaItem() }
+    }
+
+
+    enum class MediaType(val type: String) {
+        Track("track"),
+        Album("album"),
+        Artist("artist");
     }
 
 }
