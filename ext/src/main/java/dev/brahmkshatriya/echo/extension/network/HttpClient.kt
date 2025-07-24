@@ -16,12 +16,12 @@ class HttpClient(
     private val client: OkHttpClient,
     private val baseUrl: String = "https://dab.yeet.su/api/"
 ) {
-    
+    @PublishedApi
     internal val json = Json {
         ignoreUnknownKeys = true
         prettyPrint = false
     }
-    
+    @PublishedApi
     internal val jsonMediaType = "application/json; charset=UTF-8".toMediaType()
     
     /**
@@ -145,6 +145,7 @@ class HttpClient(
     /**
      * Executes the request and handles the response
      */
+    @PublishedApi
     internal suspend inline fun <reified T> executeRequest(request: Request): T {
         val response = client.newCall(request).execute()
         
