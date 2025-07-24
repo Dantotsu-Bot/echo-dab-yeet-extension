@@ -24,7 +24,7 @@ data class Album(
     val trackCount: Int,
     val duration: Int? = null,
     val audioQuality: AudioQuality,
-    val label: Label? = null,
+    val label: String? = null,
     val tracks: List<Song>? = null,
     @SerialName("parental_warning")
     val parentalWarning: Boolean = false
@@ -61,10 +61,4 @@ data class Album(
 @Serializable
 data class AlbumResponse(
     val album: Album
-)
-
-@Serializable
-data class Label(
-    val name: String,
-    val id: Long
 )
