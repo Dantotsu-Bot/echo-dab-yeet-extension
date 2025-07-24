@@ -30,7 +30,7 @@ data class Album(
         return EchoAlbum(
             id = id,
             title = title,
-            cover = images?.high.toImageHolder() ?: cover.toImageHolder(),
+            cover = images?.high?.toImageHolder() ?: cover.toImageHolder(),
             artists = listOf(Artist(id = artistId ?: artist, name = artist)),
             tracks = trackCount,
             duration = duration?.toLong(),
