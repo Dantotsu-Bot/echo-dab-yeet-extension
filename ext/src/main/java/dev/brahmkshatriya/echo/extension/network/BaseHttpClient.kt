@@ -20,11 +20,13 @@ abstract class BaseHttpClient(private val client: OkHttpClient) {
 
     protected abstract val baseUrl: String
 
-    private val json = Json {
+    @PublishedApi
+    internal val json = Json {
         ignoreUnknownKeys = true
     }
 
-    private val jsonMediaType = "application/json".toMediaType()
+    @PublishedApi
+    internal val jsonMediaType = "application/json".toMediaType()
 
     /**
      * Performs a GET request.
@@ -65,7 +67,8 @@ abstract class BaseHttpClient(private val client: OkHttpClient) {
     /**
      * Executes the request and parses the JSON response.
      */
-    private suspend inline fun <reified T> execute(request: Request): T {
+    @PublishedApi
+    internal suspend inline fun <reified T> execute(request: Request): T {
         val response = client.newCall(request).await()
         if (!response.isSuccessful) throw IOException("Unexpected code ${response.code} on ${request.url}")
         val responseBody = response.body?.string() ?: throw IOException("Empty response body")
