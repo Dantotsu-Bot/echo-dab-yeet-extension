@@ -16,7 +16,7 @@ import java.io.IOException
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 
-abstract class BaseHttpClient(private val client: OkHttpClient) {
+abstract class BaseHttpClient(@PublishedApi internal val client: OkHttpClient) {
 
     protected abstract val baseUrl: String
 
@@ -78,7 +78,8 @@ abstract class BaseHttpClient(private val client: OkHttpClient) {
     /**
      * Awaits the response of a call in a suspending manner.
      */
-    private suspend fun Call.await(): Response {
+    @PublishedApi
+    internal suspend fun Call.await(): Response {
         return suspendCancellableCoroutine { continuation ->
             enqueue(object : Callback {
                 override fun onResponse(call: Call, response: Response) {
