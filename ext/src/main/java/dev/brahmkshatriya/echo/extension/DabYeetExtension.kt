@@ -12,9 +12,15 @@ import dev.brahmkshatriya.echo.common.models.EchoMediaItem.Companion.toMediaItem
 import dev.brahmkshatriya.echo.common.models.EchoMediaItem
 import dev.brahmkshatriya.echo.common.settings.Setting
 import dev.brahmkshatriya.echo.common.settings.Settings
-import dev.brahmkshatriya.echo.extension.network.RetrofitClient
+import dev.brahmkshatriya.echo.extension.network.ApiService
+import dev.brahmkshatriya.echo.extension.network.HttpClient
 
 class DabYeetExtension : ExtensionClient, SearchFeedClient {
+
+    private val httpClient = HttpClient(client)
+    private val api = ApiService(httpClient)
+
+    // ===== Settings ===== //
 
     override suspend fun onExtensionSelected() {}
 
@@ -62,8 +68,6 @@ class DabYeetExtension : ExtensionClient, SearchFeedClient {
     }
 
     // ====== API functions ======= //
-
-    private val api = RetrofitClient.api
 
     private fun getAlbums(query: String, limit: Pair<Int, Int> = 0 to 0): List<EchoMediaItem> {
         val (trackLimit, albumLimit) = limit
