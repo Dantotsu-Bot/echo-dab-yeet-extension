@@ -46,26 +46,30 @@ class DabYeetExtension : ExtensionClient, SearchFeedClient {
             return Feed(pagedData = PagedData.empty<Shelf>() )
         }
 
-        val dummyItemsShelf = Shelf.Lists.Items(
-            title = "Albums for \"$query\"",
-            list = getAlbums(query),
-            type = Shelf.Lists.Type.Grid
-        )
+        val paged = PagedData.Single<Shelf> {
+            
+            val albums = getAlbums(query)
 
-        val dummyTracksShelf = Shelf.Lists.Tracks(
-            title = "Songs for \"$query\"",
-            subtitle = "Top Results",
-            list = listOf(),
-            isNumbered = true,
-            type = Shelf.Lists.Type.Linear
-        )
+            val dummyItemsShelf = Shelf.Lists.Items(
+                title = "Albums found ${albums.size}",
+                list = albums,
+                type = Shelf.Lists.Type.Linear
+            )
 
-        val allShelves = listOf(
-            dummyItemsShelf,
-            dummyTracksShelf
-        )
+            val dummyTracksShelf = Shelf.Lists.Tracks(
+                title = "Songs for \"$query\"",
+                subtitle = "Top Results",
+                list = listOf(),
+                isNumbered = true,
+                type = Shelf.Lists.Type.Linear
+            )
 
-        val paged = PagedData.Single<Shelf> { allShelves }
+            listOf(
+                dummyItemsShelf,
+                dummyTracksShelf
+            )
+        }
+
         return Feed(pagedData = paged)
     }
 
