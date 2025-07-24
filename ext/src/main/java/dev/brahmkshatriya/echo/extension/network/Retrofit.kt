@@ -18,7 +18,7 @@ object RetrofitClient {
 
     val retrofit: Retrofit by lazy {
         Retrofit.Builder()
-            .baseUrl("https://dab.yeet.su/api")
+            .baseUrl("https://dab.yeet.su/api/")
             .client(client)
             .addConverterFactory(json.asConverterFactory(contentType))
             .build()
