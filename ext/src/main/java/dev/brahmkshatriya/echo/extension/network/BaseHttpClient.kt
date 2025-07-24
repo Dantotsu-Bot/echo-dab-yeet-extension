@@ -22,7 +22,7 @@ abstract class BaseHttpClient(@PublishedApi internal val client: OkHttpClient) {
 
     @PublishedApi
     internal val json = Json {
-        ignoreUnknownKeys = true,
+        ignoreUnknownKeys = true
         isLenient = true
     }
 
