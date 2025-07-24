@@ -31,7 +31,6 @@ dependencies {
     }
 
     implementation("com.squareup.retrofit2:converter-kotlinx-serialization") {
-        exclude(group = "org.jetbrains.kotlinx")
         exclude(group = "org.jetbrains.kotlin")
     }
 
