@@ -4,6 +4,7 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import dev.brahmkshatriya.echo.common.clients.ExtensionClient
 import dev.brahmkshatriya.echo.common.clients.SearchFeedClient
+import dev.brahmkshatriya.echo.common.clients.TrackClient
 import dev.brahmkshatriya.echo.common.helpers.PagedData
 import dev.brahmkshatriya.echo.common.models.Feed
 import dev.brahmkshatriya.echo.common.models.QuickSearchItem
@@ -12,13 +13,14 @@ import dev.brahmkshatriya.echo.common.models.Tab
 import dev.brahmkshatriya.echo.common.models.Track
 import dev.brahmkshatriya.echo.common.models.EchoMediaItem.Companion.toMediaItem
 import dev.brahmkshatriya.echo.common.models.EchoMediaItem
+import dev.brahmkshatriya.echo.common.models.Streamable
+import dev.brahmkshatriya.echo.common.models.Streamable.Media.Companion.toServerMedia
 import dev.brahmkshatriya.echo.common.settings.Setting
 import dev.brahmkshatriya.echo.common.settings.Settings
 import dev.brahmkshatriya.echo.extension.network.ApiService
 import okhttp3.OkHttpClient
 
-class DabYeetExtension : ExtensionClient, SearchFeedClient {
-
+class DabYeetExtension : ExtensionClient, SearchFeedClient, TrackClient {
 
     private val client by lazy { OkHttpClient.Builder().build() }
 
@@ -45,20 +47,20 @@ class DabYeetExtension : ExtensionClient, SearchFeedClient {
 
     override fun searchFeed(query: String, tab: Tab?): Feed {
         if (query.isBlank()) {
-            return Feed(pagedData = PagedData.empty<Shelf   >() )
+            return Feed(pagedData = PagedData.empty<Shelf>() )
         }
 
         val paged = PagedData.Single<Shelf> {
             
             val (albums, tracks) = defaultSearch(query)
 
-            val dummyItemsShelf = Shelf.Lists.Items(
+            val albumShelf = Shelf.Lists.Items(
                 title = "Albums found ${albums.size}",
                 list = albums,
                 type = Shelf.Lists.Type.Linear
             )
 
-            val dummyTracksShelf = Shelf.Lists.Tracks(
+            val trackShelf = Shelf.Lists.Tracks(
                 title = "Songs for \"$query\"",
                 subtitle = "Top Results",
                 list = tracks,
@@ -67,15 +69,13 @@ class DabYeetExtension : ExtensionClient, SearchFeedClient {
             )
 
             listOf(
-                dummyItemsShelf,
-                dummyTracksShelf
+                albumShelf,
+                trackShelf
             )
         }
 
         return Feed(pagedData = paged)
     }
-
-    // ====== API functions ======= //
 
     private suspend fun defaultSearch(query: String, limit: Pair<Int, Int> = 0 to 0): Pair<List<EchoMediaItem>, List<Track>> = coroutineScope {
         val (trackLimit, albumLimit) = limit
@@ -97,4 +97,15 @@ class DabYeetExtension : ExtensionClient, SearchFeedClient {
         Album("album"),
         Artist("artist"),
     }
+
+    // ====== TrackClient ======= //
+
+    override suspend fun loadTrack(track: Track): Track = track
+
+    override suspend fun loadStreamableMedia(streamable: Streamable, isDownload: Boolean): Streamable.Media {
+        val url = api.getStream(streamable.id)
+        return url.toServerMedia()
+    }
+
+    override fun getShelves(track: Track): PagedData<Shelf> = PagedData.empty<Shelf>()
 }
