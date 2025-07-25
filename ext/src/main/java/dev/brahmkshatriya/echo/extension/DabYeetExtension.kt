@@ -103,8 +103,8 @@ class DabYeetExtension : ExtensionClient, SearchFeedClient, TrackClient {
     override suspend fun loadTrack(track: Track): Track = track
 
     override suspend fun loadStreamableMedia(streamable: Streamable, isDownload: Boolean): Streamable.Media {
-        val url = api.getStream(streamable.id)
-        return url.toServerMedia()
+        val stream = api.getStream(streamable.id)
+        return stream.url.toServerMedia()
     }
 
     override fun getShelves(track: Track): PagedData<Shelf> = PagedData.empty<Shelf>()
