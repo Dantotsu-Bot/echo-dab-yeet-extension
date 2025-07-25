@@ -43,7 +43,7 @@ data class Track(
             artists = listOf(Artist(id = artistId, name = artist)),
             album = Album(id = albumId, title = albumTitle),
             cover = images?.high?.toImageHolder() ?: albumCover.toImageHolder(),
-            duration = duration.toLong(),
+            duration = duration.times(1000L),
             releaseDate = parseDate(releaseDate),
             isExplicit = parentalWarning,
             irsc = isrc,
