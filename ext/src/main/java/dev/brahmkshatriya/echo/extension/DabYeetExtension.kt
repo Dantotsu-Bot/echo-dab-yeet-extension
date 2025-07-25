@@ -9,6 +9,7 @@ import dev.brahmkshatriya.echo.common.models.Feed
 import dev.brahmkshatriya.echo.common.models.QuickSearchItem
 import dev.brahmkshatriya.echo.common.models.Shelf
 import dev.brahmkshatriya.echo.common.models.Tab
+import dev.brahmkshatriya.echo.common.models.Track
 import dev.brahmkshatriya.echo.common.models.EchoMediaItem.Companion.toMediaItem
 import dev.brahmkshatriya.echo.common.models.EchoMediaItem
 import dev.brahmkshatriya.echo.common.settings.Setting
@@ -76,7 +77,7 @@ class DabYeetExtension : ExtensionClient, SearchFeedClient {
 
     // ====== API functions ======= //
 
-    private suspend fun defaultSearch(query: String, limit: Pair<Int, Int> = 0 to 0): Pair<List<EchoMediaItem>, List<EchoMediaItem>> = coroutineScope {
+    private suspend fun defaultSearch(query: String, limit: Pair<Int, Int> = 0 to 0): Pair<List<EchoMediaItem>, List<Track>> = coroutineScope {
         val (trackLimit, albumLimit) = limit
 
         val albumsDeferred = async { api.search(query, albumLimit, MediaType.Album.type) }
@@ -86,9 +87,9 @@ class DabYeetExtension : ExtensionClient, SearchFeedClient {
         val trackResponse = tracksDeferred.await()
 
         val albums = albumResponse.albums?.map { it.toAlbum().toMediaItem() } ?: emptyList()
-        val tracks = trackResponse.tracks?.map { it.toTrack().toMediaItem() } ?: emptyList()
+        val tracks = trackResponse.tracks?.map { it.toTrack() } ?: emptyList()
 
-        return albums to tracks
+        albums to tracks
     }
 
     enum class MediaType(val type: String) {

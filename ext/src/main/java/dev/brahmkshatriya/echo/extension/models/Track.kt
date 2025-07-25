@@ -1,6 +1,5 @@
 package dev.brahmkshatriya.echo.extension.models
 
-
 import dev.brahmkshatriya.echo.common.models.Track as EchoTrack
 import dev.brahmkshatriya.echo.common.models.Album
 import dev.brahmkshatriya.echo.common.models.Artist
