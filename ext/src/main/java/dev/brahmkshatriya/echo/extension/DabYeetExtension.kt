@@ -2,6 +2,7 @@ package dev.brahmkshatriya.echo.extension
 
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
+import dev.brahmkshatriya.echo.common.clients.AlbumClient
 import dev.brahmkshatriya.echo.common.clients.ExtensionClient
 import dev.brahmkshatriya.echo.common.clients.SearchFeedClient
 import dev.brahmkshatriya.echo.common.clients.TrackClient
@@ -20,7 +21,7 @@ import dev.brahmkshatriya.echo.common.settings.Settings
 import dev.brahmkshatriya.echo.extension.network.ApiService
 import okhttp3.OkHttpClient
 
-class DabYeetExtension : ExtensionClient, SearchFeedClient, TrackClient {
+class DabYeetExtension : ExtensionClient, SearchFeedClient, TrackClient, AlbumClient {
 
     private val client by lazy { OkHttpClient.Builder().build() }
 
@@ -55,13 +56,13 @@ class DabYeetExtension : ExtensionClient, SearchFeedClient, TrackClient {
             val (albums, tracks) = defaultSearch(query)
 
             val albumShelf = Shelf.Lists.Items(
-                title = "Albums found ${albums.size}",
+                title = "Albums",
                 list = albums,
                 type = Shelf.Lists.Type.Linear
             )
 
             val trackShelf = Shelf.Lists.Tracks(
-                title = "Songs for \"$query\"",
+                title = "Songs",
                 subtitle = "Top Results",
                 list = tracks,
                 isNumbered = true,
@@ -108,4 +109,17 @@ class DabYeetExtension : ExtensionClient, SearchFeedClient, TrackClient {
     }
 
     override fun getShelves(track: Track): PagedData<Shelf> = PagedData.empty<Shelf>()
+    
+    // ====== AlbumClient ====== //
+
+    override suspend fun loadAlbum(album: Album): Album = album
+
+    override fun loadTracks(album: Album): PagedData<Track> {
+        return PagedData.Single {
+            api.getAlbum(album.id).album.tracks?.map { it.toTrack() }.orEmpty()
+        }
+    }
+
+    override fun getShelves(album: Album): PagedData<Shelf> = PagedData.empty<Shelf>()
+    
 }
