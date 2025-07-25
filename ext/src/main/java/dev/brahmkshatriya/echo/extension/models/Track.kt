@@ -1,6 +1,8 @@
 package dev.brahmkshatriya.echo.extension.models
 
-import dev.brahmkshatriya.echo.common.models.Album as EchoAlbum
+
+import dev.brahmkshatriya.echo.common.models.Track as EchoTrack
+import dev.brahmkshatriya.echo.common.models.Album
 import dev.brahmkshatriya.echo.common.models.Artist
 import dev.brahmkshatriya.echo.common.models.ImageHolder.Companion.toImageHolder
 import dev.brahmkshatriya.echo.common.models.ImageHolder
@@ -11,42 +13,40 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class Album(
+data class Track(
     @Serializable(with = IntToString::class)
     val id: String,
     val title: String,
     val artist: String,
     @Serializable(with = IntToString::class)
-    val artistId: String? = null,
+    val artistId: String,
+    val albumTitle: String,
+    val albumCover: String,
+    @Serializable(with = IntToString::class)
+    val albumId: String,
     val releaseDate: String,
     val genre: String,
-    val cover: String,
-    val images: Images? = null,
-    val trackCount: Int,
-    val duration: Int? = null,
+    val duration: Int,
     val audioQuality: AudioQuality,
+    val version: String? = null,
     val label: String? = null,
-    val tracks: List<Track>? = null,
     @SerialName("parental_warning")
-    val parentalWarning: Boolean = false
+    val parentalWarning: Boolean = false,
+    val isrc: String? = null,
+    val images: Images? = null
 ) {
-    fun toAlbum(): EchoAlbum {
-        return EchoAlbum(
+    fun toTrack(): EchoTrack {
+        return EchoTrack(
             id = id,
             title = title,
-            cover = images?.high?.toImageHolder() ?: cover.toImageHolder(),
-            artists = listOf(Artist(id = artistId ?: artist, name = artist)),
-            tracks = trackCount,
-            duration = duration?.toLong(),
+            artist = listOf(Artist(id = artistId, name = artist)),
+            album = Album(id = albumId, title = albumTitle),
+            cover = images?.high?.toImageHolder() ?: albumCover.toImageHolder(),
+            duration = duration.toLong(),
             releaseDate = parseDate(releaseDate),
-            label = label,
-            isExplicit = parentalWarning
+            isExplicit = parentalWarning,
+            irsc = isrc,
+            genres = genre.split(" ").filter { it.isNotBlank() },
         )
     }
 }
-
-
-@Serializable
-data class AlbumResponse(
-    val album: Album
-)

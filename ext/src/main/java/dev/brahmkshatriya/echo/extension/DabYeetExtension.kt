@@ -1,6 +1,7 @@
 package dev.brahmkshatriya.echo.extension
 
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import dev.brahmkshatriya.echo.common.clients.ExtensionClient
 import dev.brahmkshatriya.echo.common.clients.SearchFeedClient
 import dev.brahmkshatriya.echo.common.helpers.PagedData
@@ -43,12 +44,12 @@ class DabYeetExtension : ExtensionClient, SearchFeedClient {
 
     override fun searchFeed(query: String, tab: Tab?): Feed {
         if (query.isBlank()) {
-            return Feed(pagedData = PagedData.empty<Shelf>() )
+            return Feed(pagedData = PagedData.empty<Shelf   >() )
         }
 
         val paged = PagedData.Single<Shelf> {
             
-            val albums = getAlbums(query)
+            val (albums, tracks) = defaultSearch(query)
 
             val dummyItemsShelf = Shelf.Lists.Items(
                 title = "Albums found ${albums.size}",
@@ -59,9 +60,9 @@ class DabYeetExtension : ExtensionClient, SearchFeedClient {
             val dummyTracksShelf = Shelf.Lists.Tracks(
                 title = "Songs for \"$query\"",
                 subtitle = "Top Results",
-                list = listOf(),
+                list = tracks,
                 isNumbered = true,
-                type = Shelf.Lists.Type.Linear
+                type = Shelf.Lists.Type.Grid
             )
 
             listOf(
@@ -75,16 +76,19 @@ class DabYeetExtension : ExtensionClient, SearchFeedClient {
 
     // ====== API functions ======= //
 
-    private fun getAlbums(query: String, limit: Pair<Int, Int> = 0 to 0): List<EchoMediaItem> {
+    private suspend fun defaultSearch(query: String, limit: Pair<Int, Int> = 0 to 0): Pair<List<EchoMediaItem>, List<EchoMediaItem>> = coroutineScope {
         val (trackLimit, albumLimit) = limit
 
-        val albumResponse = runBlocking {
-            api.search(query, albumLimit, MediaType.Album.type)
-        }
+        val albumsDeferred = async { api.search(query, albumLimit, MediaType.Album.type) }
+        val tracksDeferred = async { api.search(query, trackLimit, MediaType.Track.type) }
 
-        return albumResponse.albums?.let { albums ->
-            albums.map { it.toAlbum().toMediaItem() }
-        } ?: emptyList()
+        val albumResponse = albumsDeferred.await()
+        val trackResponse = tracksDeferred.await()
+
+        val albums = albumResponse.albums?.map { it.toAlbum().toMediaItem() } ?: emptyList()
+        val tracks = trackResponse.tracks?.map { it.toTrack().toMediaItem() } ?: emptyList()
+
+        return albums to tracks
     }
 
     enum class MediaType(val type: String) {
