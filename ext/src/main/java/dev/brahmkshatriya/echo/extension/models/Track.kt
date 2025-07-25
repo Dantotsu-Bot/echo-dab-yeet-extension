@@ -38,7 +38,7 @@ data class Track(
         return EchoTrack(
             id = id,
             title = title,
-            artist = listOf(Artist(id = artistId, name = artist)),
+            artists = listOf(Artist(id = artistId, name = artist)),
             album = Album(id = albumId, title = albumTitle),
             cover = images?.high?.toImageHolder() ?: albumCover.toImageHolder(),
             duration = duration.toLong(),
