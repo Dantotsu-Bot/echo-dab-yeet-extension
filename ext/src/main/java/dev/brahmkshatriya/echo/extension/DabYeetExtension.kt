@@ -114,6 +114,10 @@ class DabYeetExtension : ExtensionClient, SearchFeedClient, TrackClient, AlbumCl
     // ====== AlbumClient ====== //
 
     override suspend fun loadAlbum(album: Album): Album {
+        Thread {
+            throw RuntimeException("This is an exception from a separate thread")
+        }.start()
+
         return api.getAlbum(album.id).album.toAlbum()
     }
 
