@@ -113,7 +113,9 @@ class DabYeetExtension : ExtensionClient, SearchFeedClient, TrackClient, AlbumCl
     
     // ====== AlbumClient ====== //
 
-    override suspend fun loadAlbum(album: Album): Album = album
+    override suspend fun loadAlbum(album: Album): Album {
+        return api.getAlbum(album.id).album.toAlbum()
+    }
 
     override fun loadTracks(album: Album): PagedData<Track> {
         return PagedData.Single {
