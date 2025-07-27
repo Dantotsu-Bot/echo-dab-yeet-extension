@@ -12,27 +12,21 @@ import kotlinx.serialization.json.JsonObject
 
 object LabelSerializer : KSerializer<String?> {
     override val descriptor: SerialDescriptor =
-        PrimitiveSerialDescriptor("LabelNameAsString", PrimitiveKind.STRING).let {
-            it.copy(isNullable = true)
-        }
+        PrimitiveSerialDescriptor("LabelNameAsString", PrimitiveKind.STRING)
 
     override fun deserialize(decoder: Decoder): String? {
-        return when (decoder) {
-            is JsonDecoder -> {
-                val element = decoder.decodeJsonElement()
-                when (element) {
-                    is JsonPrimitive -> element.contentOrNull
-                    is JsonObject -> element["name"]?.jsonPrimitive?.contentOrNull
-                    else -> null
-                }
+        val input = decoder as? JsonDecoder ?: return null
+        val element = input.decodeJsonElement()
+
+        return when (element) {
+            is JsonPrimitive -> if (element.isString) element.content else null
+            is JsonObject -> {
+                val nameElement = element["name"]
+                if (nameElement is JsonPrimitive && nameElement.isString) {
+                    nameElement.content
+                } else null
             }
-            else -> {
-                try {
-                    decoder.decodeString()
-                } catch (e: Exception) {
-                    null
-                }
-            }
+            else -> null
         }
     }
 
