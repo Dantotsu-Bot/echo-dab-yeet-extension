@@ -40,7 +40,8 @@ data class Album(
             duration = duration?.times(1000L),
             releaseDate = parseDate(releaseDate),
             label = label,
-            isExplicit = parentalWarning
+            isExplicit = parentalWarning,
+            extras = mapOf("isLoaded" to "true")
         )
     }
 }

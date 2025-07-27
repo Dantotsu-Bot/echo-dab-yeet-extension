@@ -3,11 +3,13 @@ package dev.brahmkshatriya.echo.extension
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import dev.brahmkshatriya.echo.common.clients.AlbumClient
+import dev.brahmkshatriya.echo.common.clients.ArtistClient
 import dev.brahmkshatriya.echo.common.clients.ExtensionClient
 import dev.brahmkshatriya.echo.common.clients.SearchFeedClient
 import dev.brahmkshatriya.echo.common.clients.TrackClient
 import dev.brahmkshatriya.echo.common.helpers.PagedData
 import dev.brahmkshatriya.echo.common.models.Album
+import dev.brahmkshatriya.echo.common.models.Artist
 import dev.brahmkshatriya.echo.common.models.Feed
 import dev.brahmkshatriya.echo.common.models.QuickSearchItem
 import dev.brahmkshatriya.echo.common.models.Shelf
@@ -22,7 +24,7 @@ import dev.brahmkshatriya.echo.common.settings.Settings
 import dev.brahmkshatriya.echo.extension.network.ApiService
 import okhttp3.OkHttpClient
 
-class DabYeetExtension : ExtensionClient, SearchFeedClient, TrackClient, AlbumClient {
+class DabYeetExtension : ExtensionClient, SearchFeedClient, TrackClient, AlbumClient, ArtistClient {
 
     private val client by lazy { OkHttpClient.Builder().build() }
 
@@ -114,11 +116,11 @@ class DabYeetExtension : ExtensionClient, SearchFeedClient, TrackClient, AlbumCl
     // ====== AlbumClient ====== //
 
     override suspend fun loadAlbum(album: Album): Album {
-        Thread {
-            throw RuntimeException("This is an exception from a separate thread")
-        }.start()
-
-        return api.getAlbum(album.id).album.toAlbum()
+        if (album.isLoaded) {
+            return album
+        } else {
+            return api.getAlbum(album.id).album.toAlbum()
+        }
     }
 
     override fun loadTracks(album: Album): PagedData<Track> {
@@ -128,5 +130,28 @@ class DabYeetExtension : ExtensionClient, SearchFeedClient, TrackClient, AlbumCl
     }
 
     override fun getShelves(album: Album): PagedData<Shelf> = PagedData.empty<Shelf>()
+
+    // ====== ArtistClient ===== //
     
+    override suspend fun loadArtist(artist: Artist): Artist {
+        if (artist.isLoaded) {
+            return artist
+        } else {
+            return api.getArtist(artist.id).artist.toArtist()
+        }
+    }
+
+    override fun getShelves(artist: Artist): PagedData<Shelf> = PagedData.empty<Shelf>()
+
+    // ===== Utils ===== //
+
+    private fun Any.isLoaded(): Boolean {
+        return when (this) {
+            is Track -> extras["isLoaded"] == "true"
+            is Album -> extras["isLoaded"] == "true"
+            is Artist -> extras["isLoaded"] == "true"
+            else -> false
+        }
+    }
+
 }
