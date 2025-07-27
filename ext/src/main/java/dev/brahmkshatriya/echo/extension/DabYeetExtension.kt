@@ -116,7 +116,7 @@ class DabYeetExtension : ExtensionClient, SearchFeedClient, TrackClient, AlbumCl
     // ====== AlbumClient ====== //
 
     override suspend fun loadAlbum(album: Album): Album {
-        if (album.isLoaded) {
+        if (album.isLoaded()) {
             return album
         } else {
             return api.getAlbum(album.id).album.toAlbum()
@@ -134,7 +134,7 @@ class DabYeetExtension : ExtensionClient, SearchFeedClient, TrackClient, AlbumCl
     // ====== ArtistClient ===== //
     
     override suspend fun loadArtist(artist: Artist): Artist {
-        if (artist.isLoaded) {
+        if (artist.isLoaded()) {
             return artist
         } else {
             return api.getArtist(artist.id).artist.toArtist()
