@@ -6,6 +6,7 @@ import dev.brahmkshatriya.echo.common.models.ImageHolder.Companion.toImageHolder
 import dev.brahmkshatriya.echo.common.models.ImageHolder
 import dev.brahmkshatriya.echo.common.models.Date
 import dev.brahmkshatriya.echo.extension.utils.IntToString
+import dev.brahmkshatriya.echo.extension.utils.LabelSerializer
 import dev.brahmkshatriya.echo.extension.utils.parseDate
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -25,6 +26,7 @@ data class Album(
     val trackCount: Int,
     val duration: Int? = null,
     val audioQuality: AudioQuality,
+    @Serializable(with = LabelSerializer::class)
     val label: String? = null,
     val tracks: List<Track>? = null,
     @SerialName("parental_warning")
