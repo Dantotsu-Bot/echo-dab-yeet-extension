@@ -174,7 +174,7 @@ class DabYeetExtension : ExtensionClient, SearchFeedClient, TrackClient, AlbumCl
             title = title,
             list = emptyList(),
             type = shelfType,
-            more = Feed(paged)
+            more = paged.toFeed()
         )
     }
 
