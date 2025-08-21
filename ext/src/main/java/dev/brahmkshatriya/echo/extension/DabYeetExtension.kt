@@ -148,7 +148,7 @@ class DabYeetExtension : ExtensionClient, SearchFeedClient, TrackClient, AlbumCl
         }
     }
 
-    private suspend fun <R> buildShelf(
+    private suspend fun <R> buildPagedShelf(
         id: String,
         title: String,
         type: Shelf.Lists.Type,
