@@ -59,7 +59,7 @@ class DabYeetExtension : ExtensionClient, SearchFeedClient, TrackClient, AlbumCl
             return emptyList<Shelf>().toFeed()
         }
 
-        val albumList = getPagedMedia(
+        val albumMore = getPagedShelf(
             search = { offset -> api.search(query, offset, MediaType.Album.type) },
             extractItems = { response -> response.albums?.map { it.toAlbum() } ?: emptyList() },
             extractPagination = { response -> response.pagination }
@@ -68,11 +68,12 @@ class DabYeetExtension : ExtensionClient, SearchFeedClient, TrackClient, AlbumCl
         val albumShelf = Shelf.Lists.Items(
             id = "0",
             title = "Albums",
-            list = albumList,
-            type = Shelf.Lists.Type.Linear
+            list = listOf(),
+            type = Shelf.Lists.Type.Linear,
+            more = albumMore.toFeed()
         )
 
-        val trackList = getPagedMedia(
+        val trackMore = getPagedShelf(
             search = { offset -> api.search(query, offset, MediaType.Track.type) },
             extractItems = { response -> response.tracks?.map { it.toTrack() } ?: emptyList() },
             extractPagination = { response -> response.pagination }
@@ -81,8 +82,9 @@ class DabYeetExtension : ExtensionClient, SearchFeedClient, TrackClient, AlbumCl
         val trackShelf = Shelf.Lists.Items(
             id = "1",
             title = "Tracks",
-            list = trackList,
-            type = Shelf.Lists.Type.Grid
+            list = listOf(),
+            type = Shelf.Lists.Type.Grid,
+            more = trackMore.toFeed()
         )
 
         return listOf(albumShelf, trackShelf).toFeed()
@@ -158,11 +160,11 @@ class DabYeetExtension : ExtensionClient, SearchFeedClient, TrackClient, AlbumCl
         }
     }
 
-    private fun <R> getPagedMedia(
+    private fun <R> getPagedShelf(
         search: suspend (offset: Int) -> R,
         extractItems: (R) -> List<EchoMediaItem>,
         extractPagination: (R) -> Pagination
-    ): PagedData.Continuous<EchoMediaItem> {
+    ): PagedData.Continuous<Shelf> {
         return PagedData.Continuous { pagination ->
             val offset = if (pagination == null) {
                 0
@@ -172,7 +174,7 @@ class DabYeetExtension : ExtensionClient, SearchFeedClient, TrackClient, AlbumCl
             }
 
             val response = search(offset)
-            val items = extractItems(response)
+            val items = extractItems(response).map { it.toShelf() }
 
             val pag = extractPagination(response)
             val next = if (pag.hasMore == true) json.encodeToString(pag) else null
