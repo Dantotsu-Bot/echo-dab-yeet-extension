@@ -59,9 +59,7 @@ class DabYeetExtension : ExtensionClient, SearchFeedClient, TrackClient, AlbumCl
             return emptyList<Shelf>().toFeed()
         }
 
-        val albumMore = makePagedShelf(
-            title = "Albums",
-            shelfType = Shelf.Lists.Type.Linear,
+        val albumMore = getPagedMedia(
             search = { offset -> api.search(query, offset, MediaType.Album.type) },
             extractItems = { response -> response.albums?.map { it.toAlbum() } ?: emptyList() },
             extractPagination = { response -> response.pagination }
@@ -75,9 +73,7 @@ class DabYeetExtension : ExtensionClient, SearchFeedClient, TrackClient, AlbumCl
             more = albumMore.toFeed()
         )
 
-        val trackMore = makePagedShelf(
-            title = "Tracks",
-            shelfType = Shelf.Lists.Type.Grid,
+        val trackMore = getPagedMedia(
             search = { offset -> api.search(query, offset, MediaType.Track.type) },
             extractItems = { response -> response.tracks?.map { it.toTrack() } ?: emptyList() },
             extractPagination = { response -> response.pagination }
@@ -164,13 +160,11 @@ class DabYeetExtension : ExtensionClient, SearchFeedClient, TrackClient, AlbumCl
         }
     }
 
-    private fun <R> makePagedShelf(
-        title: String,
-        shelfType: Shelf.Lists.Type,
+    private fun <R> getPagedMedia(
         search: suspend (offset: Int) -> R,
         extractItems: (R) -> List<EchoMediaItem>,
         extractPagination: (R) -> Pagination
-    ): PagedData.Continuous<Shelf> {
+    ): PagedData.Continuous<EchoMediaItem> {
         return PagedData.Continuous { pagination ->
             val offset = if (pagination == null) {
                 0
@@ -182,17 +176,10 @@ class DabYeetExtension : ExtensionClient, SearchFeedClient, TrackClient, AlbumCl
             val response = search(offset)
             val items = extractItems(response)
 
-            val shelf = Shelf.Lists.Items(
-                id = "search-$title",
-                title = title,
-                list = items,
-                type = shelfType
-            )
-
             val pag = extractPagination(response)
             val next = if (pag.hasMore == true) json.encodeToString(pag) else null
 
-            Page(listOf(shelf), next)
+            Page(items, next)
         }
     }
 
