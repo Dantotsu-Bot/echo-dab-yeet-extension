@@ -59,7 +59,7 @@ class DabYeetExtension : ExtensionClient, SearchFeedClient, TrackClient, AlbumCl
             return emptyList<Shelf>().toFeed()
         }
 
-        val albumMore = getPagedMedia(
+        val albumList = getPagedMedia(
             search = { offset -> api.search(query, offset, MediaType.Album.type) },
             extractItems = { response -> response.albums?.map { it.toAlbum() } ?: emptyList() },
             extractPagination = { response -> response.pagination }
@@ -68,12 +68,11 @@ class DabYeetExtension : ExtensionClient, SearchFeedClient, TrackClient, AlbumCl
         val albumShelf = Shelf.Lists.Items(
             id = "0",
             title = "Albums",
-            list = listOf(),
-            type = Shelf.Lists.Type.Linear,
-            more = albumMore.toFeed()
+            list = albumList,
+            type = Shelf.Lists.Type.Linear
         )
 
-        val trackMore = getPagedMedia(
+        val trackList = getPagedMedia(
             search = { offset -> api.search(query, offset, MediaType.Track.type) },
             extractItems = { response -> response.tracks?.map { it.toTrack() } ?: emptyList() },
             extractPagination = { response -> response.pagination }
@@ -82,9 +81,8 @@ class DabYeetExtension : ExtensionClient, SearchFeedClient, TrackClient, AlbumCl
         val trackShelf = Shelf.Lists.Items(
             id = "1",
             title = "Tracks",
-            list = listOf(),
-            type = Shelf.Lists.Type.Grid,
-            more = trackMore.toFeed()
+            list = trackList,
+            type = Shelf.Lists.Type.Grid
         )
 
         return listOf(albumShelf, trackShelf).toFeed()
