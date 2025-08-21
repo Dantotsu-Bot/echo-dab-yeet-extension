@@ -55,9 +55,7 @@ class DabYeetExtension : ExtensionClient, SearchFeedClient, TrackClient, AlbumCl
     //==== SearchFeedClient ====//
 
     override suspend fun loadSearchFeed(query: String): Feed<Shelf> {
-        if (query.isBlank()) {
-            return listOf<Shelf>().toFeed()
-        }
+        if (query.isBlank()) return listOf<Shelf>().toFeed()
 
         val albumShelf = makePagedShelf(
             id = "albums",
@@ -77,7 +75,7 @@ class DabYeetExtension : ExtensionClient, SearchFeedClient, TrackClient, AlbumCl
             extractPagination = { response -> response.pagination }
         )
 
-        return listOf(albumShelf, trackShelf).toFeed()
+        return listOf<Shelf>(albumShelf, trackShelf).toFeed()
     }
 
     // ====== TrackClient ======= //
@@ -150,7 +148,7 @@ class DabYeetExtension : ExtensionClient, SearchFeedClient, TrackClient, AlbumCl
         }
     }
 
-    private fun makePagedShelf(
+    private fun <R : Any> makePagedShelf(
         id: String,
         title: String,
         shelfType: Shelf.Lists.Type,
@@ -159,12 +157,8 @@ class DabYeetExtension : ExtensionClient, SearchFeedClient, TrackClient, AlbumCl
         extractPagination: (R) -> Pagination
     ): Shelf.Lists.Items {
         val paged = PagedData.Continuous<EchoMediaItem> { pagination ->
-            val offset = if (pagination == null) {
-                0
-            } else {
-                val current = json.decodeFromString<Pagination>(pagination)
-                current.offset + current.limit
-            }
+            val current = pagination?.let { json.decodeFromString<Pagination>(it) }
+            val offset = current?.offset ?: 0
 
             val response = search(offset)
             val items = extractItems(response)
