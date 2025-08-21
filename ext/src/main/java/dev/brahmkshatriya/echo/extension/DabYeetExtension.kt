@@ -75,7 +75,7 @@ class DabYeetExtension : ExtensionClient, SearchFeedClient, TrackClient, AlbumCl
             extractPagination = { response -> response.pagination }
         )
 
-        return PagedData.Concat(albumShelf, trackShelf).toFeed()
+        return listOf<Shelf>(albumShelf, trackShelf).toFeed()
     }
 
     // ====== TrackClient ======= //
