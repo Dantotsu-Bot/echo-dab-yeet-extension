@@ -55,36 +55,24 @@ class DabYeetExtension : ExtensionClient, SearchFeedClient, TrackClient, AlbumCl
     //==== SearchFeedClient ====//
 
     override suspend fun loadSearchFeed(query: String): Feed<Shelf> {
-        if (query.isBlank()) {
-            return emptyList<Shelf>().toFeed()
-        }
+        if (query.isBlank()) return emptyList<Shelf>().toFeed()
 
-        val albumMore = getPagedShelf(
-            search = { offset -> api.search(query, offset, MediaType.Album.type) },
-            extractItems = { response -> response.albums?.map { it.toAlbum() } ?: emptyList() },
-            extractPagination = { response -> response.pagination }
-        )
-
-        val albumShelf = Shelf.Lists.Items(
+        val albumShelf = buildPagedShelf(
             id = "0",
             title = "Albums",
-            list = listOf(),
             type = Shelf.Lists.Type.Linear,
-            more = albumMore.toFeed()
+            search = { offset -> api.search(query, offset, MediaType.Album.type) },
+            extractItems = { it.albums?.map { a -> a.toAlbum() } ?: emptyList() },
+            extractPagination = { it.pagination }
         )
 
-        val trackMore = getPagedShelf(
-            search = { offset -> api.search(query, offset, MediaType.Track.type) },
-            extractItems = { response -> response.tracks?.map { it.toTrack() } ?: emptyList() },
-            extractPagination = { response -> response.pagination }
-        )
-
-        val trackShelf = Shelf.Lists.Items(
+        val trackShelf = buildPagedShelf(
             id = "1",
             title = "Tracks",
-            list = listOf(),
             type = Shelf.Lists.Type.Grid,
-            more = trackMore.toFeed()
+            search = { offset -> api.search(query, offset, MediaType.Track.type) },
+            extractItems = { it.tracks?.map { t -> t.toTrack() } ?: emptyList() },
+            extractPagination = { it.pagination }
         )
 
         return listOf(albumShelf, trackShelf).toFeed()
@@ -160,27 +148,44 @@ class DabYeetExtension : ExtensionClient, SearchFeedClient, TrackClient, AlbumCl
         }
     }
 
-    private fun <R> getPagedShelf(
+    private suspend fun <R> buildPagedShelf(
+        id: String,
+        title: String,
+        type: Shelf.Lists.Type,
         search: suspend (offset: Int) -> R,
         extractItems: (R) -> List<EchoMediaItem>,
         extractPagination: (R) -> Pagination
-    ): PagedData.Continuous<Shelf> {
-        return PagedData.Continuous { pagination ->
-            val offset = if (pagination == null) {
+    ): Shelf.Lists.Items {
+
+        suspend fun createPage(offset: Int, cachedResponse: R? = null): Page<Shelf> {
+            val response = cachedResponse ?: search(offset)
+            val items = extractItems(response).map { it.toShelf() }
+            val pagination = extractPagination(response)
+            val next = if (pagination.hasMore == true) json.encodeToString(pagination) else null
+            return Page(items, next)
+        }
+
+        val firstResponse = search(0)
+        val firstPage = createPage(0, firstResponse)
+
+        val paged = PagedData.Continuous<Shelf> { paginationString ->
+            val offset = if (paginationString == null) {
                 0
             } else {
-                val current = json.decodeFromString<Pagination>(pagination)
-                current.offset + current.limit
+                val pagination = json.decodeFromString<Pagination>(paginationString)
+                pagination.offset + pagination.limit
             }
 
-            val response = search(offset)
-            val items = extractItems(response).map { it.toShelf() }
-
-            val pag = extractPagination(response)
-            val next = if (pag.hasMore == true) json.encodeToString(pag) else null
-
-            Page(items, next)
+            if (offset == 0) firstPage else createPage(offset)
         }
+    
+        return Shelf.Lists.Items(
+            id = id,
+            title = title,
+            list = firstPage.items,
+            type = type,
+            more = paged.toFeed()
+        )
     }
 
     enum class MediaType(val type: String) {
