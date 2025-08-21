@@ -148,7 +148,7 @@ class DabYeetExtension : ExtensionClient, SearchFeedClient, TrackClient, AlbumCl
         }
     }
 
-    private suspend fun <R> buildPagedShelf(
+    private suspend fun <R> buildShelf(
         id: String,
         title: String,
         type: Shelf.Lists.Type,
@@ -157,32 +157,30 @@ class DabYeetExtension : ExtensionClient, SearchFeedClient, TrackClient, AlbumCl
         extractPagination: (R) -> Pagination
     ): Shelf.Lists.Items {
 
-        suspend fun createPage(offset: Int, cachedResponse: R? = null): Page<Shelf> {
-            val response = cachedResponse ?: search(offset)
-            val items = extractItems(response).map { it.toShelf() }
-            val pagination = extractPagination(response)
-            val next = if (pagination.hasMore == true) json.encodeToString(pagination) else null
-            return Page(items, next)
-        }
-
         val firstResponse = search(0)
-        val firstPage = createPage(0, firstResponse)
+        val firstItems = extractItems(firstResponse)
+        val firstPagination = extractPagination(firstResponse)
 
         val paged = PagedData.Continuous<Shelf> { paginationString ->
             val offset = if (paginationString == null) {
                 0
             } else {
-                val pagination = json.decodeFromString<Pagination>(paginationString)
-                pagination.offset + pagination.limit
+                val current = json.decodeFromString<Pagination>(paginationString)
+                current.offset + current.limit
             }
 
-            if (offset == 0) firstPage else createPage(offset)
+            val response = if (offset == 0) firstResponse else search(offset)
+            val items = extractItems(response).map { it.toShelf() }
+            val pagination = extractPagination(response)
+            val next = if (pagination.hasMore == true) json.encodeToString(pagination) else null
+
+            Page(items, next)
         }
-    
+
         return Shelf.Lists.Items(
             id = id,
             title = title,
-            list = firstPage.items,
+            list = firstItems,
             type = type,
             more = paged.toFeed()
         )
