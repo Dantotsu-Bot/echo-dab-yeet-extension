@@ -119,7 +119,23 @@ class DabYeetExtension : ExtensionClient, SearchFeedClient, TrackClient, AlbumCl
         }
     }
 
-    override suspend fun loadFeed(artist: Artist) : Feed<Shelf> = listOf<Shelf>().toFeed()
+    override suspend fun loadFeed(artist: Artist) : Feed<Shelf> {
+        val data = if (artist.isLoaded()) {
+            artist
+        } else {
+            api.getArtist(artist.id).toArtist()
+        }
+        val albumList = json.decodeFromString(data.extras["albumList"])
+        val similarArtistId = json.decodeFromString(data.extras["similarArtistIds"])
+        
+        val albums = Shelf.Lists.Items(
+            id = "0",
+            title = "More from ${artist.name}",
+            list = albumList,
+            type = Shelf.Lists.Type.Linear
+        )
+        return albums.toFeed()
+    }
 
     // ====== ShareClient ===== //
 
@@ -159,7 +175,6 @@ class DabYeetExtension : ExtensionClient, SearchFeedClient, TrackClient, AlbumCl
 
         val firstResponse = search(0)
         val firstItems = extractItems(firstResponse)
-        val firstPagination = extractPagination(firstResponse)
 
         val paged = PagedData.Continuous<Shelf> { paginationString ->
             val offset = if (paginationString == null) {
@@ -172,7 +187,7 @@ class DabYeetExtension : ExtensionClient, SearchFeedClient, TrackClient, AlbumCl
             val response = if (offset == 0) firstResponse else search(offset)
             val items = extractItems(response).map { it.toShelf() }
             val pagination = extractPagination(response)
-            val next = if (pagination.hasMore == true) json.encodeToString(pagination) else null
+            val next = if (pagination.hasMore) json.encodeToString(pagination) else null
 
             Page(items, next)
         }

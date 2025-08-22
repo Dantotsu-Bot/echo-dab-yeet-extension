@@ -60,7 +60,7 @@ data class Artist(
             extras = mapOf(
                 "similarArtistIds" to Json.encodeToString(similarArtistIds),
                 "slug" to slug,
-                "isLoaded" to "true"
+                "isLoaded" to "false"
             )
         )
     }
