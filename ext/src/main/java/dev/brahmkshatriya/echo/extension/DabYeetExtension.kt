@@ -125,7 +125,7 @@ class DabYeetExtension : ExtensionClient, SearchFeedClient, TrackClient, AlbumCl
         } else {
             api.getArtist(artist.id).toArtist()
         }
-        val albumList = json.decodeFromString<EchoMediaItem>(data.extras["albumList"]!!)
+        val albumList = json.decodeFromString<List<EchoMediaItem>>(data.extras["albumList"]!!)
         val similarArtistId = json.decodeFromString<List<String>>(data.extras["similarArtistIds"]!!)
         
         val albums = Shelf.Lists.Items(
