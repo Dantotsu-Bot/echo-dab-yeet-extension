@@ -75,7 +75,7 @@ class DabYeetExtension : ExtensionClient, SearchFeedClient, TrackClient, AlbumCl
             extractPagination = { it.pagination }
         )
 
-        return listOf(albumShelf, trackShelf).toFeed()
+        return listOf<Shelf>(albumShelf, trackShelf).toFeed()
     }
 
     // ====== TrackClient ======= //
@@ -134,7 +134,7 @@ class DabYeetExtension : ExtensionClient, SearchFeedClient, TrackClient, AlbumCl
             list = albumList,
             type = Shelf.Lists.Type.Linear
         )
-        return albums.toFeed()
+        return listOf<Shelf>(albums).toFeed()
     }
 
     // ====== ShareClient ===== //
