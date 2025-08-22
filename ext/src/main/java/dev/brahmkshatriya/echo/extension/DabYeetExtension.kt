@@ -125,7 +125,7 @@ class DabYeetExtension : ExtensionClient, SearchFeedClient, TrackClient, AlbumCl
         } else {
             api.getArtist(artist.id).toArtist()
         }
-        val albumList = json.decodeFromString<List<EchoMediaItem>>(data.extras["albumList"]!!)
+        val albumList = json.decodeFromString<List<Album>>(data.extras["albumList"]!!)
         val similarArtistId = json.decodeFromString<List<String>>(data.extras["similarArtistIds"]!!)
         
         val albums = Shelf.Lists.Items(
@@ -187,7 +187,7 @@ class DabYeetExtension : ExtensionClient, SearchFeedClient, TrackClient, AlbumCl
             val response = if (offset == 0) firstResponse else search(offset)
             val items = extractItems(response).map { it.toShelf() }
             val pagination = extractPagination(response)
-            val next = if (pagination.hasMore) json.encodeToString(pagination) else null
+            val next = if (pagination.hasMore == true) json.encodeToString(pagination) else null
 
             Page(items, next)
         }
