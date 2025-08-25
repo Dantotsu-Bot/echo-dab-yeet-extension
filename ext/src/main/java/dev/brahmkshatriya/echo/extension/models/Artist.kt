@@ -17,7 +17,7 @@ data class ArtistResponse(
         return EchoArtist(
             id = artist.id,
             name = artist.name,
-            cover = artist.image.high?.toImageHolder(),
+            cover = artist.image?.high?.toImageHolder(),
             bio = artist.biography?.content.orEmpty(),
             extras = mapOf(
                 "similarArtistIds" to Json.encodeToString(artist.similarArtistIds),
