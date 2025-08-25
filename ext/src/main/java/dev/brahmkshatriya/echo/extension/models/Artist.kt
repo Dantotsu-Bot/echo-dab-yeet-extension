@@ -46,7 +46,7 @@ data class Artist(
     val albumsAsPrimaryArtistCount: Int,
     val albumsAsPrimaryComposerCount: Int,
     val slug: String,
-    val image: Images,
+    val image: Images? = null,
     val biography: Biography? = null,
     val similarArtistIds: List<String>,
     val information: String? = null
@@ -55,7 +55,7 @@ data class Artist(
         return EchoArtist(
             id = id,
             name = name,
-            cover = image.high?.toImageHolder(),
+            cover = image?.high?.toImageHolder(),
             bio = biography?.content.orEmpty(),
             extras = mapOf(
                 "similarArtistIds" to Json.encodeToString(similarArtistIds),
