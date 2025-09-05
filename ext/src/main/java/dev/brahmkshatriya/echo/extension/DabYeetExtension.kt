@@ -3,6 +3,7 @@ package dev.brahmkshatriya.echo.extension
 import dev.brahmkshatriya.echo.common.clients.AlbumClient
 import dev.brahmkshatriya.echo.common.clients.ArtistClient
 import dev.brahmkshatriya.echo.common.clients.ExtensionClient
+import dev.brahmkshatriya.echo.common.clients.LoginClient
 import dev.brahmkshatriya.echo.common.clients.SearchFeedClient
 import dev.brahmkshatriya.echo.common.clients.ShareClient
 import dev.brahmkshatriya.echo.common.clients.TrackClient
@@ -11,27 +12,29 @@ import dev.brahmkshatriya.echo.common.helpers.Page
 import dev.brahmkshatriya.echo.common.helpers.PagedData
 import dev.brahmkshatriya.echo.common.models.Album
 import dev.brahmkshatriya.echo.common.models.Artist
+import dev.brahmkshatriya.echo.common.models.EchoMediaItem
 import dev.brahmkshatriya.echo.common.models.Feed
 import dev.brahmkshatriya.echo.common.models.Feed.Companion.toFeed
+import dev.brahmkshatriya.echo.common.models.Message
 import dev.brahmkshatriya.echo.common.models.Playlist
 import dev.brahmkshatriya.echo.common.models.Radio
-import dev.brahmkshatriya.echo.common.models.QuickSearchItem
 import dev.brahmkshatriya.echo.common.models.Shelf
-import dev.brahmkshatriya.echo.common.models.Tab
-import dev.brahmkshatriya.echo.common.models.Track
-import dev.brahmkshatriya.echo.common.models.EchoMediaItem
 import dev.brahmkshatriya.echo.common.models.Streamable
 import dev.brahmkshatriya.echo.common.models.Streamable.Media.Companion.toServerMedia
+import dev.brahmkshatriya.echo.common.models.Track
+import dev.brahmkshatriya.echo.common.models.User
+import dev.brahmkshatriya.echo.common.providers.MessageFlowProvider
 import dev.brahmkshatriya.echo.common.settings.Setting
 import dev.brahmkshatriya.echo.common.settings.Settings
+import dev.brahmkshatriya.echo.extension.models.LoginResponse
 import dev.brahmkshatriya.echo.extension.models.Pagination
 import dev.brahmkshatriya.echo.extension.network.ApiService
-import okhttp3.OkHttpClient
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.decodeFromString
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.serialization.json.Json
+import okhttp3.OkHttpClient
 
-class DabYeetExtension : ExtensionClient, SearchFeedClient, TrackClient, AlbumClient, ArtistClient, ShareClient {
+class DabYeetExtension : ExtensionClient, SearchFeedClient, TrackClient, AlbumClient, ArtistClient,
+    ShareClient, LoginClient.CustomInput {
 
     private val client by lazy { OkHttpClient.Builder().build() }
 
@@ -42,14 +45,15 @@ class DabYeetExtension : ExtensionClient, SearchFeedClient, TrackClient, AlbumCl
         isLenient = true
     }
 
+
     // ===== Settings ===== //
 
     override suspend fun onExtensionSelected() {}
 
     override suspend fun onInitialize() {}
-    
-    override suspend fun getSettingItems() : List<Setting> = listOf<Setting>()
-    
+
+    override suspend fun getSettingItems(): List<Setting> = listOf<Setting>()
+
     override fun setSettings(settings: Settings) {}
 
     //==== SearchFeedClient ====//
@@ -82,20 +86,23 @@ class DabYeetExtension : ExtensionClient, SearchFeedClient, TrackClient, AlbumCl
 
     override suspend fun loadTrack(track: Track, isDownload: Boolean): Track = track
 
-    override suspend fun loadStreamableMedia(streamable: Streamable, isDownload: Boolean): Streamable.Media {
+    override suspend fun loadStreamableMedia(
+        streamable: Streamable,
+        isDownload: Boolean
+    ): Streamable.Media {
         val stream = api.getStream(streamable.id)
         return stream.url.toServerMedia()
     }
 
     override suspend fun loadFeed(track: Track): Feed<Shelf>? = null
-    
+
     // ====== AlbumClient ====== //
 
     override suspend fun loadAlbum(album: Album): Album {
-        if (album.isLoaded()) {
-            return album
+        return if (album.isLoaded()) {
+            album
         } else {
-            return api.getAlbum(album.id).album.toAlbum()
+            api.getAlbum(album.id).album.toAlbum()
         }
     }
 
@@ -110,7 +117,7 @@ class DabYeetExtension : ExtensionClient, SearchFeedClient, TrackClient, AlbumCl
     override suspend fun loadFeed(album: Album): Feed<Shelf>? = null
 
     // ====== ArtistClient ===== //
-    
+
     override suspend fun loadArtist(artist: Artist): Artist {
         if (artist.isLoaded()) {
             return artist
@@ -119,15 +126,15 @@ class DabYeetExtension : ExtensionClient, SearchFeedClient, TrackClient, AlbumCl
         }
     }
 
-    override suspend fun loadFeed(artist: Artist) : Feed<Shelf> {
+    override suspend fun loadFeed(artist: Artist): Feed<Shelf> {
         val data = if (artist.isLoaded()) {
             artist
         } else {
             api.getArtist(artist.id).toArtist()
         }
         val albumList = json.decodeFromString<List<Album>>(data.extras["albumList"]!!)
-        val similarArtistId = json.decodeFromString<List<String>>(data.extras["similarArtistIds"]!!)
-        
+        json.decodeFromString<List<String>>(data.extras["similarArtistIds"]!!)
+
         val albums = Shelf.Lists.Items(
             id = "0",
             title = "More from ${artist.name}",
@@ -137,10 +144,118 @@ class DabYeetExtension : ExtensionClient, SearchFeedClient, TrackClient, AlbumCl
         return listOf<Shelf>(albums).toFeed()
     }
 
+    // ====== LoginClient ===== //
+
+
+    override val forms: List<LoginClient.Form>
+        get() = listOf<LoginClient.Form>(
+            LoginClient.Form(
+                key = "register",
+                "Register",
+                LoginClient.InputField.Type.Misc,
+                inputFields = listOf(
+                    LoginClient.InputField(
+                        type = LoginClient.InputField.Type.Username,
+                        key = "username",
+                        label = "Username",
+                        isRequired = true
+                    ),
+                    LoginClient.InputField(
+                        type = LoginClient.InputField.Type.Email,
+                        key = "email",
+                        label = "Email",
+                        isRequired = true
+                    ),
+                    LoginClient.InputField(
+                        type = LoginClient.InputField.Type.Password,
+                        key = "password",
+                        label = "Password",
+                        isRequired = true
+                    )
+                )
+            ),
+            LoginClient.Form(
+                key = "login",
+                "Login",
+                LoginClient.InputField.Type.Misc,
+                inputFields = listOf(
+                    LoginClient.InputField(
+                        type = LoginClient.InputField.Type.Email,
+                        key = "email",
+                        label = "Email",
+                        isRequired = true
+                    ),
+                    LoginClient.InputField(
+                        type = LoginClient.InputField.Type.Password,
+                        key = "password",
+                        label = "Password",
+                        isRequired = true
+                    )
+                )
+            )
+        )
+
+
+    override suspend fun onLogin(
+        key: String,
+        data: Map<String, String?>
+    ): List<User> {
+        when {
+            key == "login" -> {
+                val email = requireNotNull(data["email"]) { "Email is required" }
+                val password = requireNotNull(data["password"]) { "Password is required" }
+                val response = api.login(email, password)
+                val parsedResponse = json.decodeFromString<LoginResponse>(response.body.string())
+                val session = extractSession(response.headers["set-cookie"])
+                    ?: throw Exception("Failed to extract session from response")
+                return listOf(
+                    User(
+                        id = parsedResponse.user.id.toString(),
+                        name = parsedResponse.user.username,
+                        extras = mapOf("session" to session)
+                    )
+                )
+
+            }
+
+            key == "register" -> {
+                val username = requireNotNull(data["username"]) { "Username is required" }
+                val email = requireNotNull(data["email"]) { "Email is required" }
+                val password = requireNotNull(data["password"]) { "Password is required" }
+                val response = api.register(username, email, password)
+                val session = extractSession(response.headers["set-cookie"])
+                    ?: throw Exception("Failed to extract session from response")
+                return listOf(
+                    User(
+                        id = email,
+                        name = username,
+                        extras = mapOf("session" to session)
+                    )
+                )
+            }
+
+            else -> {
+                throw IllegalArgumentException("Invalid login form key: $key")
+            }
+        }
+    }
+
+
+    private fun extractSession(cookieHeader: String?): String? {
+        return cookieHeader?.split(';')
+            ?.firstOrNull { it.trim().startsWith("session=") }
+            ?.substringAfter("session=")
+    }
+
+
+    override fun setLoginUser(user: User?) = Unit
+
+    override suspend fun getCurrentUser(): User? = null
+
     // ====== ShareClient ===== //
 
     override suspend fun onShare(item: EchoMediaItem): String {
-        return when(item) {
+        return when (item) {
             is Track -> "https://www.qobuz.com/us-en/album/${item.extras["albumId"]}"
             is Album -> "https://www.qobuz.com/us-en/album/${item.id}"
             is Artist -> {
@@ -148,6 +263,7 @@ class DabYeetExtension : ExtensionClient, SearchFeedClient, TrackClient, AlbumCl
                 val slug = item.extras["slug"]
                 "https://www.qobuz.com/us-en/interpreter/$slug/$id"
             }
+
             is Playlist -> throw ClientException.NotSupported("TODO: Playlist sharing")
             is Radio -> throw ClientException.NotSupported("Will not be implemented")
         }
@@ -200,6 +316,7 @@ class DabYeetExtension : ExtensionClient, SearchFeedClient, TrackClient, AlbumCl
             more = paged.toFeed()
         )
     }
+
 
     enum class MediaType(val type: String) {
         Track("track"),

@@ -1,9 +1,8 @@
 package dev.brahmkshatriya.echo.extension.network
 
-import kotlinx.coroutines.CancellableContinuation
+import dev.brahmkshatriya.echo.extension.models.ErrorResponse
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.serialization.json.Json
-import kotlinx.serialization.encodeToString
 import okhttp3.Call
 import okhttp3.Callback
 import okhttp3.HttpUrl.Companion.toHttpUrl
@@ -32,48 +31,81 @@ abstract class BaseHttpClient(@PublishedApi internal val client: OkHttpClient) {
     /**
      * Performs a GET request.
      */
-    protected suspend inline fun <reified T> get(endpoint: String, params: Map<String, Any> = emptyMap()): T {
+    protected suspend inline fun <reified T> get(
+        endpoint: String,
+        params: Map<String, Any> = emptyMap(),
+        sessionCookie: String? = null
+    ): T {
         val urlBuilder = baseUrl.toHttpUrl().newBuilder().addPathSegments(endpoint)
         params.forEach { (key, value) -> urlBuilder.addQueryParameter(key, value.toString()) }
-        val request = Request.Builder().url(urlBuilder.build()).get().build()
-        return execute(request)
+        val requestBuilder = Request.Builder().url(urlBuilder.build()).get()
+        sessionCookie?.let { requestBuilder.header("Cookie", it) }
+        val request = requestBuilder.build()
+        val response = execute(request)
+        val responseBody = response.body.string()
+        return json.decodeFromString(responseBody)
     }
 
     /**
      * Performs a POST request with a JSON body.
      */
-    protected suspend inline fun <reified T> post(endpoint: String, body: Any): T {
-        val requestBody = json.encodeToString(body).toRequestBody(jsonMediaType)
-        val request = Request.Builder().url(baseUrl.toHttpUrl().newBuilder().addPathSegments(endpoint).build()).post(requestBody).build()
+    protected suspend fun post(
+        endpoint: String,
+        jsonBody: String,
+        sessionCookie: String? = null
+    ): Response {
+        val requestBody = jsonBody.toRequestBody(jsonMediaType)
+        val requestBuilder = Request.Builder().url(baseUrl.toHttpUrl().newBuilder().addPathSegments(endpoint).build()).post(requestBody)
+        sessionCookie?.let { requestBuilder.header("Cookie", it) }
+        val request = requestBuilder.build()
         return execute(request)
     }
 
     /**
      * Performs a PATCH request with a JSON body.
      */
-    protected suspend inline fun <reified T> patch(endpoint: String, body: Any): T {
-        val requestBody = json.encodeToString(body).toRequestBody(jsonMediaType)
-        val request = Request.Builder().url(baseUrl.toHttpUrl().newBuilder().addPathSegments(endpoint).build()).patch(requestBody).build()
-        return execute(request)
+    protected suspend inline fun <reified T> patch(
+        endpoint: String,
+        jsonBody: String,
+        sessionCookie: String? = null
+    ): T {
+        val requestBody = jsonBody.toRequestBody(jsonMediaType)
+        val requestBuilder = Request.Builder().url(baseUrl.toHttpUrl().newBuilder().addPathSegments(endpoint).build()).patch(requestBody)
+        sessionCookie?.let { requestBuilder.header("Cookie", it) }
+        val request = requestBuilder.build()
+        val response = execute(request)
+        val responseBody = response.body.string()
+        return json.decodeFromString(responseBody)
     }
 
     /**
      * Performs a DELETE request.
      */
-    protected suspend inline fun <reified T> delete(endpoint: String): T {
-        val request = Request.Builder().url(baseUrl.toHttpUrl().newBuilder().addPathSegments(endpoint).build()).delete().build()
-        return execute(request)
+    protected suspend inline fun <reified T> delete(
+        endpoint: String,
+        sessionCookie: String? = null
+    ): T {
+        val requestBuilder = Request.Builder().url(baseUrl.toHttpUrl().newBuilder().addPathSegments(endpoint).build()).delete()
+        sessionCookie?.let { requestBuilder.header("Cookie", it) }
+        val request = requestBuilder.build()
+        val response = execute(request)
+        val responseBody = response.body.string()
+        return json.decodeFromString(responseBody)
     }
 
     /**
-     * Executes the request and parses the JSON response.
+     * Executes the request and returns the Response object.
      */
     @PublishedApi
-    internal suspend inline fun <reified T> execute(request: Request): T {
+    internal suspend fun execute(request: Request): Response {
         val response = client.newCall(request).await()
-        if (!response.isSuccessful) throw IOException("Unexpected code ${response.code} on ${request.url}")
-        val responseBody = response.body?.string() ?: throw IOException("Empty response body")
-        return json.decodeFromString(responseBody)
+        if (!response.isSuccessful) {
+            val errorResponse = json.decodeFromString<ErrorResponse>(response.body.string())
+            throw Exception(
+                "Error ${response.code}: ${errorResponse.error ?:  errorResponse.message ?: "Unknown error"}"
+            )
+        }
+        return response
     }
 
     /**
@@ -95,5 +127,13 @@ abstract class BaseHttpClient(@PublishedApi internal val client: OkHttpClient) {
                 cancel()
             }
         }
+    }
+
+    /**
+     * Helper extension function to serialize an object to a JSON string.
+     */
+    @PublishedApi
+    internal inline fun <reified T> T.toJsonString(): String {
+        return json.encodeToString(this)
     }
 }

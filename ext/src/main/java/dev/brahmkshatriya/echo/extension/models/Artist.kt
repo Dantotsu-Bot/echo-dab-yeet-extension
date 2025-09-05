@@ -1,11 +1,10 @@
 package dev.brahmkshatriya.echo.extension.models
 
-import dev.brahmkshatriya.echo.common.models.Artist as EchoArtist
 import dev.brahmkshatriya.echo.common.models.ImageHolder.Companion.toImageHolder
 import dev.brahmkshatriya.echo.extension.utils.IntToString
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import dev.brahmkshatriya.echo.common.models.Artist as EchoArtist
 
 @Serializable
 data class ArtistResponse(

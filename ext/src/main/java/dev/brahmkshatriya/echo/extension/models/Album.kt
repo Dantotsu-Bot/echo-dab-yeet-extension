@@ -1,16 +1,16 @@
 package dev.brahmkshatriya.echo.extension.models
 
-import dev.brahmkshatriya.echo.common.models.Album as EchoAlbum
 import dev.brahmkshatriya.echo.common.models.Artist
 import dev.brahmkshatriya.echo.common.models.ImageHolder.Companion.toImageHolder
-import dev.brahmkshatriya.echo.common.models.ImageHolder
-import dev.brahmkshatriya.echo.common.models.Date
 import dev.brahmkshatriya.echo.extension.utils.IntToString
 import dev.brahmkshatriya.echo.extension.utils.LabelSerializer
 import dev.brahmkshatriya.echo.extension.utils.parseDate
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import dev.brahmkshatriya.echo.common.models.Album as EchoAlbum
 
+@OptIn(ExperimentalSerializationApi::class)
 @Serializable
 data class Album(
     @Serializable(with = IntToString::class)

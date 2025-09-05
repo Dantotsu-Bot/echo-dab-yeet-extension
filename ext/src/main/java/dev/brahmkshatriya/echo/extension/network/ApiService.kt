@@ -2,9 +2,12 @@ package dev.brahmkshatriya.echo.extension.network
 
 import dev.brahmkshatriya.echo.extension.models.AlbumResponse
 import dev.brahmkshatriya.echo.extension.models.ArtistResponse
-import dev.brahmkshatriya.echo.extension.models.Stream
+import dev.brahmkshatriya.echo.extension.models.LoginRequest
+import dev.brahmkshatriya.echo.extension.models.RegisterRequest
 import dev.brahmkshatriya.echo.extension.models.SearchResponse
+import dev.brahmkshatriya.echo.extension.models.Stream
 import okhttp3.OkHttpClient
+import okhttp3.Response
 
 class ApiService(client: OkHttpClient) : BaseHttpClient(client) {
 
@@ -28,5 +31,19 @@ class ApiService(client: OkHttpClient) : BaseHttpClient(client) {
 
     suspend fun getStream(trackId: String): Stream {
         return get("stream", mapOf("trackId" to trackId))
+    }
+
+    suspend fun login(username: String, password: String): Response {
+        return post(
+            "auth/login",
+            LoginRequest(username, password).toJsonString()
+        )
+    }
+
+    suspend fun register(username: String, email: String, password: String): Response {
+        return post(
+            "auth/register",
+            RegisterRequest(username, email, password).toJsonString()
+        )
     }
 }
