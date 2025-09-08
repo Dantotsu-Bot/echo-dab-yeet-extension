@@ -2,6 +2,7 @@ package dev.brahmkshatriya.echo.extension.network
 
 import dev.brahmkshatriya.echo.extension.models.AlbumResponse
 import dev.brahmkshatriya.echo.extension.models.ArtistResponse
+import dev.brahmkshatriya.echo.extension.models.FavouriteResponse
 import dev.brahmkshatriya.echo.extension.models.LoginRequest
 import dev.brahmkshatriya.echo.extension.models.RegisterRequest
 import dev.brahmkshatriya.echo.extension.models.SearchResponse
@@ -45,5 +46,13 @@ class ApiService(client: OkHttpClient) : BaseHttpClient(client) {
             "auth/register",
             RegisterRequest(username, email, password).toJsonString()
         )
+    }
+
+    suspend fun getPlaylists(id: String? = null, session: String): Response {
+        return get("libraries/${id}", sessionCookie = session)
+    }
+
+    suspend fun getFavourites(session: String): FavouriteResponse {
+        return get("favorites", sessionCookie = session)
     }
 }

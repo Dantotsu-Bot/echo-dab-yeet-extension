@@ -3,6 +3,7 @@ package dev.brahmkshatriya.echo.extension
 import dev.brahmkshatriya.echo.common.clients.AlbumClient
 import dev.brahmkshatriya.echo.common.clients.ArtistClient
 import dev.brahmkshatriya.echo.common.clients.ExtensionClient
+import dev.brahmkshatriya.echo.common.clients.LibraryFeedClient
 import dev.brahmkshatriya.echo.common.clients.LoginClient
 import dev.brahmkshatriya.echo.common.clients.SearchFeedClient
 import dev.brahmkshatriya.echo.common.clients.ShareClient
@@ -34,7 +35,7 @@ import kotlinx.serialization.json.Json
 import okhttp3.OkHttpClient
 
 class DabYeetExtension : ExtensionClient, SearchFeedClient, TrackClient, AlbumClient, ArtistClient,
-    ShareClient, LoginClient.CustomInput {
+    ShareClient, LoginClient.CustomInput, LibraryFeedClient {
 
     private val client by lazy { OkHttpClient.Builder().build() }
 
@@ -45,6 +46,7 @@ class DabYeetExtension : ExtensionClient, SearchFeedClient, TrackClient, AlbumCl
         isLenient = true
     }
 
+    private var _session: String? = null
 
     // ===== Settings ===== //
 
@@ -242,15 +244,44 @@ class DabYeetExtension : ExtensionClient, SearchFeedClient, TrackClient, AlbumCl
 
 
     private fun extractSession(cookieHeader: String?): String? {
-        return cookieHeader?.split(';')
-            ?.firstOrNull { it.trim().startsWith("session=") }
-            ?.substringAfter("session=")
+        if (cookieHeader == null) {
+            return null
+        }
+
+        val cookies = cookieHeader.split(';')
+
+        for (cookie in cookies) {
+            val trimmedCookie = cookie.trim()
+            if (trimmedCookie.startsWith("session=")) {
+                return trimmedCookie
+            }
+        }
+        return null
     }
 
 
-    override fun setLoginUser(user: User?) = Unit
+    override fun setLoginUser(user: User?) {
+        user.let {
+            _session = it?.extras?.get("session")
+        }
+    }
 
     override suspend fun getCurrentUser(): User? = null
+
+    // ======= LibraryFeedClient ===== //
+
+    override suspend fun loadLibraryFeed(): Feed<Shelf> {
+        val session = _session ?: throw ClientException.LoginRequired()
+
+        val favShelf = Shelf.Lists.Items(
+            id = "fav",
+            title = "Favourites",
+            list =  api.getFavourites(session).track.map { it.toTrack() },
+            type = Shelf.Lists.Type.Linear
+        )
+        return listOf(favShelf).toFeed()
+    }
+
 
     // ====== ShareClient ===== //
 
