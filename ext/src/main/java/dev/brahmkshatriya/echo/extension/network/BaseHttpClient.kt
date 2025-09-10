@@ -83,9 +83,12 @@ abstract class BaseHttpClient(@PublishedApi internal val client: OkHttpClient) {
      */
     protected suspend inline fun <reified T> delete(
         endpoint: String,
+        params: Map<String, Any> = emptyMap(),
         sessionCookie: String? = null
     ): T {
-        val requestBuilder = Request.Builder().url(baseUrl.toHttpUrl().newBuilder().addPathSegments(endpoint).build()).delete()
+        val urlBuilder = baseUrl.toHttpUrl().newBuilder().addPathSegments(endpoint)
+        params.forEach { (key, value) -> urlBuilder.addQueryParameter(key, value.toString()) }
+        val requestBuilder = Request.Builder().url(urlBuilder.build()).delete()
         sessionCookie?.let { requestBuilder.header("Cookie", it) }
         val request = requestBuilder.build()
         val response = execute(request)

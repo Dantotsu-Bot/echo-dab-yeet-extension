@@ -4,6 +4,7 @@ import dev.brahmkshatriya.echo.common.clients.AlbumClient
 import dev.brahmkshatriya.echo.common.clients.ArtistClient
 import dev.brahmkshatriya.echo.common.clients.ExtensionClient
 import dev.brahmkshatriya.echo.common.clients.LibraryFeedClient
+import dev.brahmkshatriya.echo.common.clients.LikeClient
 import dev.brahmkshatriya.echo.common.clients.LoginClient
 import dev.brahmkshatriya.echo.common.clients.SearchFeedClient
 import dev.brahmkshatriya.echo.common.clients.ShareClient
@@ -35,7 +36,7 @@ import kotlinx.serialization.json.Json
 import okhttp3.OkHttpClient
 
 class DabYeetExtension : ExtensionClient, SearchFeedClient, TrackClient, AlbumClient, ArtistClient,
-    ShareClient, LoginClient.CustomInput, LibraryFeedClient {
+    ShareClient, LoginClient.CustomInput, LibraryFeedClient, LikeClient {
 
     private val client by lazy { OkHttpClient.Builder().build() }
 
@@ -273,13 +274,46 @@ class DabYeetExtension : ExtensionClient, SearchFeedClient, TrackClient, AlbumCl
     override suspend fun loadLibraryFeed(): Feed<Shelf> {
         val session = _session ?: throw ClientException.LoginRequired()
 
+        likedList.clear()
+        likedList.addAll(api.getFavourites(session).track.map { it.toTrack() })
+        shouldFetchLikes = false
+
         val favShelf = Shelf.Lists.Items(
             id = "fav",
             title = "Favourites",
-            list =  api.getFavourites(session).track.map { it.toTrack() },
+            list = likedList.toList(),
             type = Shelf.Lists.Type.Linear
         )
         return listOf(favShelf).toFeed()
+    }
+
+    // ===== LikeClient ===== //
+
+    private var shouldFetchLikes = true
+    private var likedList: MutableList<EchoMediaItem> = mutableListOf<EchoMediaItem>()
+
+    override suspend fun likeItem(
+        item: EchoMediaItem,
+        shouldLike: Boolean
+    ) {
+        val session = _session ?: throw ClientException.LoginRequired()
+        if (shouldLike) {
+            api.addFavourite(item.extras["rawJson"]!!, session)
+            likedList.add(item)
+        } else {
+            api.removeFavourite(item.id, session)
+            likedList.removeIf { it.id == item.id }
+        }
+    }
+
+    override suspend fun isItemLiked(item: EchoMediaItem): Boolean {
+        val session = _session ?: throw ClientException.LoginRequired()
+        if (shouldFetchLikes) {
+            likedList.clear()
+            likedList.addAll(api.getFavourites(session).track.map { it.toTrack() })
+            shouldFetchLikes = false
+        }
+        return likedList.any { it.id == item.id }
     }
 
 
@@ -347,7 +381,6 @@ class DabYeetExtension : ExtensionClient, SearchFeedClient, TrackClient, AlbumCl
             more = paged.toFeed()
         )
     }
-
 
     enum class MediaType(val type: String) {
         Track("track"),

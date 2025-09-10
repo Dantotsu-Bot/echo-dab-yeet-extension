@@ -55,4 +55,12 @@ class ApiService(client: OkHttpClient) : BaseHttpClient(client) {
     suspend fun getFavourites(session: String): FavouriteResponse {
         return get("favorites", sessionCookie = session)
     }
+
+    suspend fun addFavourite(json: String, session: String): Response {
+        return post("favorites", json, session)
+    }
+
+    suspend fun removeFavourite(id: String, session: String): Response {
+        return delete("favorites", mapOf("trackId" to id), session)
+    }
 }

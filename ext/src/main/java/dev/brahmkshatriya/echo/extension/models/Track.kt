@@ -8,6 +8,7 @@ import dev.brahmkshatriya.echo.extension.utils.IntToString
 import dev.brahmkshatriya.echo.extension.utils.parseDate
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.Json
 import dev.brahmkshatriya.echo.common.models.Track as EchoTrack
 
 @Serializable
@@ -33,7 +34,14 @@ data class Track(
     val isrc: String? = null,
     val images: Images? = null
 ) {
+    @Serializable
+    private data class TrackWrapper(val track: Track)
+
     fun toTrack(): EchoTrack {
+        val trackJson = Json.encodeToString(this)
+
+        val rawJson =  """{"track": $trackJson}"""
+
         return EchoTrack(
             id = id,
             title = title,
@@ -46,7 +54,8 @@ data class Track(
             isrc = isrc,
             genres = genre.split(" ").filter { it.isNotBlank() },
             extras = mapOf(
-                "albumId" to albumId
+                "albumId" to albumId,
+                "rawJson" to rawJson
             ),
             streamables = listOf(
                 Streamable.server(
